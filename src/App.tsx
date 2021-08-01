@@ -1,7 +1,7 @@
 import React from 'react';
 import './App.css';
-import {Formik, Field, Form, useField, FieldAttributes} from 'formik';
-import {TextField, Button, Checkbox, Radio, FormControlLabel} from "@material-ui/core"
+import {Formik, Field, Form, useField, FieldAttributes, FieldArray} from 'formik';
+import {TextField, Button, Checkbox, Radio, FormControlLabel, Select, MenuItem} from "@material-ui/core"
 import * as yup from 'yup';
 
 type MyRadioProps = { label: string } & FieldAttributes<{}>
@@ -25,29 +25,25 @@ const MyTextField :React.FC<FieldAttributes<{}>> = ({placeholder, ...props}) => 
 }
 
 const validationSchema = yup.object({
-    firstName: yup.string().required().max(10)
+    firstName: yup.string().required().max(10),
+    pets: yup.array().of(yup.object({
+        name: yup.string().required()
+    }))
 })
 
 function App() {
   return (
     <div className="App">
         <Formik
+            validateOnChange={true}
             initialValues={{
                 firstName: '',
                 lastName: '',
                 isTall: false,
                 cookies: [],
-                yogurt: ''
+                yogurt: '',
+                pets: [{ type: "cat", name: "jarvis", id: "" + Math.random() }]
             }}
-            // validate={(values) => {
-            //     const errors : Record<string, string> = {};
-            //
-            //     if(values.firstName.includes('bob')) {
-            //         errors.firstName = 'no bob';
-            //     }
-            //
-            //     return errors;
-            // }}
             validationSchema={validationSchema}
             onSubmit={(data, {setSubmitting, resetForm}) => {
                 setSubmitting(true);
@@ -58,8 +54,7 @@ function App() {
         >
           {({ values, isSubmitting, errors }) => (
             <Form className={"container"}>
-                {/*<Field name={"firstName"} placeholder={"first name"} type={"input"} as={TextField}/>*/}
-                <MyTextField name={"firstName"} placeholder={"first name"} type={"input"} />
+                <MyTextField name={"firstName"} placeholder={"first name"} />
                 <div>
                     <Field name={"lastName"} placeholder={"last name"} type={"input"} as={TextField}/>
                 </div>
@@ -76,6 +71,29 @@ function App() {
                     <MyRadio name={"yogurt"} type={"radio"} label={"blueberry"} value={"blueberry"} />
                     <MyRadio name={"yogurt"} type={"radio"} label={"apple"} value={"apple"} />
                 </div>
+                <FieldArray name={"pets"}>
+                    {(arrayHelpers) => (
+                        <div>
+                            <Button onClick={() => arrayHelpers.push({
+                                type: 'frog',
+                                name: '',
+                                id: '' + Math.random()
+                            })}>ADD PET</Button>
+                            {values.pets.map((pet, index) => {
+                                return (
+                                <div key={pet.id}>
+                                    <MyTextField name={`pets.${index}.name`} placeholder={"pet name"}/>
+                                    <Field name={`pet.${index}.type`} type={"select"} as={Select}>
+                                        <MenuItem value={"cat"}>cat</MenuItem>
+                                        <MenuItem value={"dog"}>dog</MenuItem>
+                                        <MenuItem value={"frog"}>frog</MenuItem>
+                                    </Field>
+                                    <Button onClick={() => arrayHelpers.remove(index)}>x</Button>
+                                </div>
+                                )})}
+                        </div>
+                    )}
+                </FieldArray>
                 <div>
                     <Button disabled={isSubmitting} type={"submit"}>Submit</Button>
                 </div>
