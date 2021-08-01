@@ -2,6 +2,7 @@ import React from 'react';
 import './App.css';
 import {Formik, Field, Form, useField, FieldAttributes} from 'formik';
 import {TextField, Button, Checkbox, Radio, FormControlLabel} from "@material-ui/core"
+import * as yup from 'yup';
 
 type MyRadioProps = { label: string } & FieldAttributes<{}>
 
@@ -19,9 +20,13 @@ const MyTextField :React.FC<FieldAttributes<{}>> = ({placeholder, ...props}) => 
     const [field, meta] = useField(props);
     const errorText = meta.error && meta.touched ? meta.error: '';
     return (
-        <TextField {...field} placeholder={placeholder} helperText={errorText}/>
+        <TextField {...field} placeholder={placeholder} helperText={errorText} error={!!errorText}/>
     )
 }
+
+const validationSchema = yup.object({
+    firstName: yup.string().required().max(10)
+})
 
 function App() {
   return (
@@ -34,6 +39,16 @@ function App() {
                 cookies: [],
                 yogurt: ''
             }}
+            // validate={(values) => {
+            //     const errors : Record<string, string> = {};
+            //
+            //     if(values.firstName.includes('bob')) {
+            //         errors.firstName = 'no bob';
+            //     }
+            //
+            //     return errors;
+            // }}
+            validationSchema={validationSchema}
             onSubmit={(data, {setSubmitting, resetForm}) => {
                 setSubmitting(true);
                 // make async call
@@ -41,7 +56,7 @@ function App() {
                 setSubmitting(false);
             }}
         >
-          {({ values, isSubmitting, handleChange, handleBlur, handleSubmit }) => (
+          {({ values, isSubmitting, errors }) => (
             <Form className={"container"}>
                 {/*<Field name={"firstName"} placeholder={"first name"} type={"input"} as={TextField}/>*/}
                 <MyTextField name={"firstName"} placeholder={"first name"} type={"input"} />
@@ -57,9 +72,6 @@ function App() {
                 </div>
                 <div>Yogurt</div>
                 <div>
-                    {/*<Field name={"yogurt"} type={"radio"} value={"peach"} as={Radio}></Field>*/}
-                    {/*<Field name={"yogurt"} type={"radio"} value={"blueberry"} as={Radio}></Field>*/}
-                    {/*<Field name={"yogurt"} type={"radio"} value={"apple"} as={Radio}></Field>*/}
                     <MyRadio name={"yogurt"} type={"radio"} label={"peach"}  value={"peach"} />
                     <MyRadio name={"yogurt"} type={"radio"} label={"blueberry"} value={"blueberry"} />
                     <MyRadio name={"yogurt"} type={"radio"} label={"apple"} value={"apple"} />
@@ -68,6 +80,7 @@ function App() {
                     <Button disabled={isSubmitting} type={"submit"}>Submit</Button>
                 </div>
                 <pre className={"json"}>{JSON.stringify(values, null, 2)}</pre>
+                <pre className={"json"}>{JSON.stringify(errors, null, 2)}</pre>
             </Form>
           )}
         </Formik>
